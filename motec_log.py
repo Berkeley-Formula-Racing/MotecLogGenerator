@@ -1,6 +1,7 @@
 import datetime
 import numpy as np
 import struct
+from tqdm import tqdm
 from data_log import DataLog, Message, Channel
 from ldparser.ldparser import ldVehicle, ldVenue, ldEvent, ldHead, ldChan, ldData
 
@@ -85,10 +86,6 @@ class MotecLog(object):
         shift = 0
         multiplier = 1
         scale = 1
-
-        # Decimal places must be hard coded to zero, the ldparser library doesn't properly
-        # handle non zero values, consequently all channels will have zero decimal places
-        # decimals = log_channel.decimals
         decimals = 0
 
         ld_channel = ldChan(None, meta_ptr, prev_meta_ptr, next_meta_ptr, data_ptr, data_len, \
@@ -108,7 +105,7 @@ class MotecLog(object):
 
         data_log: data_log.DataLog
         """
-        for channel_name, channel in data_log.channels.items():
+        for channel_name, channel in tqdm(data_log.channels.items()):
             self.add_channel(channel)
 
     def write(self, filename):

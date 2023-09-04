@@ -1,5 +1,6 @@
 import cantools
 import math
+from tqdm import tqdm
 
 class DataLog(object):
     """ Container for storing log data which contains a set of channels with time series data."""
@@ -10,9 +11,9 @@ class DataLog(object):
     def clear(self):
         self.channels = {}
 
-    def add_channel(self, name, units, data_type, decimals, initial_message=None):
+    def add_channel(self, name, units, data_type, initial_message=None):
         msg = [] if not initial_message else [initial_message]
-        self.channels[name] = Channel(name, units, data_type, decimals, msg)
+        self.channels[name] = Channel(name, units, data_type, msg)
 
     def start(self):
         """ Returns the earliest timestamp from all existing channels [s]. """
@@ -44,7 +45,7 @@ class DataLog(object):
         """
         start = self.start()
         end = self.end()
-        for channel_name in self.channels:
+        for channel_name in tqdm(self.channels):
             self.channels[channel_name].resample(start, end, frequency)
 
     def from_can_log(self, log_lines, can_db):
@@ -79,14 +80,16 @@ class DataLog(object):
                 if name in self.channels:
                     self.channels[name].messages.append(Message(stamp, value))
                 else:
-                    self.add_channel(name, signal.unit, float, 3, Message(stamp, value))
+                    self.add_channel(name, signal.unit, float, Message(stamp, value))
 
-    def from_csv_log(self, log_lines):
-        """ Creates channels populated with messages from a CSV log file.
+    def from_racecapture_log(self, log_lines):
+        """ Creates channels populated with messages RaceCapture log file (.log).
 
-        This will create a channel for each column in the CSV file, with the name of that channel
-        taken from the CSV header. All channels will be created without any units. Any non numeric data
-        will be ignored, and that channel will be removed. The first column of data must be time
+        Based off of this format: https://wiki.autosportlabs.com/RaceCapturePro2_logfile_reference
+
+        This will create a channel for each column in the CSV file, with the name and units of that
+        channel taken from the CSV header. Any non numeric data will be ignored, and that channel
+        will be removed.
 
         log_lines: List, containing CSV log lines
         """
@@ -95,28 +98,34 @@ class DataLog(object):
         if not log_lines:
             return
 
-        # Get the channel names, ignore the first column as it is assumed to be time
-        header = log_lines[0]
-        channel_names = header.split(",")[1:]
-        units = log_lines[1]
-        channel_units = units.split(",")[1:]
+        # Header has the format: "Channel 1 (Units 1),Channel 2 (Units 2),...,AP Info:..."
+        # So we'll want to ignore the first column (Time) and last column (vehicle info)
+        header = log_lines[0].replace("\"", '')
+        header_elements = header.split(",")[1:]
 
         # We'll keep a map of names and column numbers for easy channel lookups when parsing rows
         i = 0
         channel_dict = {}
-        for name in channel_names:
-            self.add_channel(name, channel_units[i], float, 0)
+        for element in header_elements:
+            # Channels have the format "Name (Units)"
+            name, units, _, _, sample_rate = element.split("|")
+            
+            self.add_channel(name, units, float)
 
             channel_dict[name] = i
             i += 1
 
         # Go through each line grabbing all the channel values
-        for line in log_lines[2:]:
+        prev_values = [0.0] * (len(header_elements) + 1) # include time
+        for line in log_lines[1:]:
             line = line.strip("\n")
             values = line.split(",")
 
             # Timestamp is the first element
-            t = float(values[0])
+            if not values[0]: # use last recorded value
+                values[0] = prev_values[0]
+            
+            t = float(values[0]) / 1000.0 # ms to seconds
 
             # Grab each remaining channel value. We keep a map of all the channel names and column
             # numbers we are retrieving, so we will look at that to determine which columns to read.
@@ -125,49 +134,22 @@ class DataLog(object):
             for name, i in channel_dict.items():
                 # We'll only parse numeric data
                 try:
-                    val = float(values[i + 1])
+                    if not values[i+1]:
+                        values[i+1] = prev_values[i+1]
+                    val = float(values[i+1])
+
                     message = Message(t, val)
                     self.channels[name].messages.append(message)
-
-                    val_text_split = values[i + 1].split(".")
-                    decimals_present = 0 if len(val_text_split) == 1 else len(val_text_split[1])
-                    self.channels[name].decimals = max(decimals_present, self.channels[name].decimals)
-                except ValueError:
+                except ValueError as e:
                     print("WARNING: Found non numeric values for channel %s, removing channel" % \
                         name)
                     invalid_channels.append(name)
+            
+            prev_values = values[:]
 
             for name in invalid_channels:
                 del channel_dict[name]
                 del self.channels[name]
-
-    def from_accessport_log(self, log_lines):
-        """ Creates channels populated with messages from a COBB Accessport CSV log file.
-
-        This will create a channel for each column in the CSV file, with the name and units of that
-        channel taken from the CSV header. Any non numeric data will be ignored, and that channel
-        will be removed.
-
-        log_lines: List, containing CSV log lines
-        """
-
-        self.from_csv_log(log_lines)
-
-        # Accessport logs have a column for AP info which is not of any value so we'll delete it
-        for key in self.channels.keys():
-            if "AP Info" in key:
-                del self.channels[key]
-                break
-
-        # Update all the channel names and units
-        for channel_name, channel in self.channels.items():
-            # Channels have the format "Name (Units)"
-            print(channel_name)
-            name, units = channel_name.split(" (")
-            units = units[:-1]
-
-            channel.name = name
-            channel.units = units
 
     @staticmethod
     def __parse_can_log_line(line):
@@ -190,15 +172,11 @@ class DataLog(object):
 
 class Channel(object):
     """ Represents a singe channel of data containing a time series of values."""
-    def __init__(self, name, units, data_type, decimals, messages=None):
+    def __init__(self, name, units, data_type, messages=None):
         self.name = str(name)
         self.units = str(units)
         self.data_type = data_type
-        self.decimals = decimals
-        if messages:
-            self.messages = messages
-        else:
-            self.messages = []
+        self.messages = messages if messages else []
 
     def start(self):
         if self.messages:
@@ -263,8 +241,8 @@ class Channel(object):
         self.messages = new_msgs
 
     def __str__(self):
-        return "Channel: %s, Units: %s, Decimals: %d, Messages: %d, Frequency: %.2f Hz" % \
-        (self.name, self.units, self.decimals, len(self.messages), self.avg_frequency())
+        return "Channel: %s, Units: %s, Messages: %d, Frequency: %.2f Hz" % \
+        (self.name, self.units, len(self.messages), self.avg_frequency())
 
 class Message(object):
     """ A single message in a time series of data. """
