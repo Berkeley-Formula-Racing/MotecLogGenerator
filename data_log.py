@@ -98,18 +98,20 @@ class DataLog(object):
         # Get the channel names, ignore the first column as it is assumed to be time
         header = log_lines[0]
         channel_names = header.split(",")[1:]
+        units = log_lines[1]
+        channel_units = units.split(",")[1:]
 
         # We'll keep a map of names and column numbers for easy channel lookups when parsing rows
         i = 0
         channel_dict = {}
         for name in channel_names:
-            self.add_channel(name, "", float, 0)
+            self.add_channel(name, channel_units[i], float, 0)
 
             channel_dict[name] = i
             i += 1
 
         # Go through each line grabbing all the channel values
-        for line in log_lines[1:]:
+        for line in log_lines[2:]:
             line = line.strip("\n")
             values = line.split(",")
 
