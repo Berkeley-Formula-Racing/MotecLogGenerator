@@ -96,9 +96,11 @@ class MotecLog(object):
             log_channel.units)
 
         # Add in the channel data
-        ld_channel._data = np.array([], data_type)
+        ld_channel._data = np.zeros(data_len, data_type)
+        i = 0
         for msg in log_channel.messages:
-            ld_channel._data = np.append(ld_channel._data, data_type(msg.value))
+            ld_channel._data[i] = data_type(msg.value)
+            i += 1
 
         # Add the ld channel and advance the file pointers
         self.ld_channels.append(ld_channel)

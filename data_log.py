@@ -242,7 +242,7 @@ class Channel(object):
         value = 0
         t = start_time
         current_msgs_index = 0
-        new_msgs = []
+        new_msgs = [None] * num_msgs
         for i in range(num_msgs):
             # Grab the latest message that falls in this time window, if there is one, and update
             # the current channel value
@@ -257,7 +257,7 @@ class Channel(object):
                     # This messages belongs in a future window
                     break
 
-            new_msgs.append(Message(t, value))
+            new_msgs[i] = Message(t, value)
             t += dt_step
 
         self.messages = new_msgs

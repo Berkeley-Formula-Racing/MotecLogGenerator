@@ -99,7 +99,7 @@ if __name__ == '__main__':
     # Resample all the channels to occur at a fixed frequency. We must do this because the data in
     # motec log expects a constant sample rate, it does not associate a timestamp to each individual
     # message in a channel.
-    data_log.resample(args.frequency)
+    # data_log.resample(args.frequency)
 
     print("Converting to MoTeC log...")
 
