@@ -10,9 +10,9 @@ class DataLog(object):
     def clear(self):
         self.channels = {}
 
-    def add_channel(self, name, units, data_type, decimals, initial_message=None):
-        msg = [] if not initial_message else [initial_message]
-        self.channels[name] = Channel(name, units, data_type, decimals, msg)
+    def add_channel(self, name, units, data_type, decimals, initial_message=None, initial_msgs_size=1):
+        msg = None if not initial_message else [initial_message]
+        self.channels[name] = Channel(name, units, data_type, decimals, msg, initial_msgs_size)
 
     def start(self):
         """ Returns the earliest timestamp from all existing channels [s]. """
@@ -105,12 +105,13 @@ class DataLog(object):
         i = 0
         channel_dict = {}
         for name in channel_names:
-            self.add_channel(name, channel_units[i], float, 0)
+            self.add_channel(name, channel_units[i], float, 0, None, len(log_lines)-2)
 
             channel_dict[name] = i
             i += 1
 
         # Go through each line grabbing all the channel values
+        j = 0
         for line in log_lines[2:]:
             line = line.strip("\n")
             values = line.split(",")
@@ -127,7 +128,7 @@ class DataLog(object):
                 try:
                     val = float(values[i + 1])
                     message = Message(t, val)
-                    self.channels[name].messages.append(message)
+                    self.channels[name].messages[j] = message
 
                     val_text_split = values[i + 1].split(".")
                     decimals_present = 0 if len(val_text_split) == 1 else len(val_text_split[1])
@@ -140,6 +141,8 @@ class DataLog(object):
             for name in invalid_channels:
                 del channel_dict[name]
                 del self.channels[name]
+
+            j += 1
 
     def from_accessport_log(self, log_lines):
         """ Creates channels populated with messages from a COBB Accessport CSV log file.
@@ -190,7 +193,7 @@ class DataLog(object):
 
 class Channel(object):
     """ Represents a singe channel of data containing a time series of values."""
-    def __init__(self, name, units, data_type, decimals, messages=None):
+    def __init__(self, name, units, data_type, decimals, messages=None, initial_size=1):
         self.name = str(name)
         self.units = str(units)
         self.data_type = data_type
@@ -198,7 +201,7 @@ class Channel(object):
         if messages:
             self.messages = messages
         else:
-            self.messages = []
+            self.messages = [None]*initial_size
 
     def start(self):
         if self.messages:
