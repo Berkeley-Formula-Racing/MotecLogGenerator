@@ -1,7 +1,7 @@
 #include "data_log.h"
 #include <ctype.h>
 
-#define MAX_LINE_LENGTH 1024
+#define MAX_LINE_LENGTH 10000
 #define MAX_COLUMNS 1000
 #define INITIAL_CHANNEL_CAPACITY 500
 
@@ -49,7 +49,6 @@ int datalog_from_csv_log(DataLog* log, FILE* f) {
     char* header = NULL;
     char* units = NULL;
     
-    // Read header and units lines
     if (fgets(line, MAX_LINE_LENGTH, f)) {
         header = strdup(line);
         // printf("Debug - Header line: %s\n", header);
@@ -59,12 +58,10 @@ int datalog_from_csv_log(DataLog* log, FILE* f) {
         // printf("Debug - Units line: %s\n", units);
     }
 
-    // Parse header and units
     char** headers = malloc(MAX_COLUMNS * sizeof(char*));
     char** unit_tokens = malloc(MAX_COLUMNS * sizeof(char*));
     int column_count = 0;
     
-    // Split header line
     char* token = strtok(header, ",");
     while (token && column_count < MAX_COLUMNS) {
         headers[column_count] = strdup(token);
@@ -110,6 +107,7 @@ int datalog_from_csv_log(DataLog* log, FILE* f) {
                 double value = atof(value_str);
                 Channel* channel = log->channels[i];
                 
+                // trivial, should have enough, this should never run
                 if (channel->message_count >= channel->message_capacity) {
                     channel->message_capacity *= 2;
                     channel->messages = realloc(channel->messages, 
@@ -123,7 +121,7 @@ int datalog_from_csv_log(DataLog* log, FILE* f) {
         }
     }
 
-
+    // calculate channel frequencies, this may not be right on it's own but is probably due to errors above
     double duration = last_timestamp - first_timestamp;
     if (duration > 0) {
         for (size_t i = 0; i < log->channel_count; i++) {

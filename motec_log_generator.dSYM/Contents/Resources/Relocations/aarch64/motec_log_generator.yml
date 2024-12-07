@@ -1,0 +1,53 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     motec_log_generator
+relocations:
+  - { offset: 0x26, size: 0x8, addend: 0x0, symName: _parse_arguments, symObjAddr: 0x0, symBinAddr: 0x100003CD8, symSize: 0x3BC }
+  - { offset: 0x41, size: 0x8, addend: 0x0, symName: _parse_arguments, symObjAddr: 0x0, symBinAddr: 0x100003CD8, symSize: 0x3BC }
+  - { offset: 0x66, size: 0x8, addend: 0x0, symName: _parse_arguments.long_options, symObjAddr: 0xB30, symBinAddr: 0x10000C000, symSize: 0x0 }
+  - { offset: 0x11D, size: 0x8, addend: 0x0, symName: _DESCRIPTION, symObjAddr: 0xCF0, symBinAddr: 0x10000C1C0, symSize: 0x0 }
+  - { offset: 0x132, size: 0x8, addend: 0x0, symName: _EPILOG, symObjAddr: 0xCF8, symBinAddr: 0x10000C1C8, symSize: 0x0 }
+  - { offset: 0x17E, size: 0x8, addend: 0x0, symName: _print_usage, symObjAddr: 0x410, symBinAddr: 0x1000040E8, symSize: 0x104 }
+  - { offset: 0x193, size: 0x8, addend: 0x0, symName: _get_output_filename, symObjAddr: 0x514, symBinAddr: 0x1000041EC, symSize: 0x148 }
+  - { offset: 0x239, size: 0x8, addend: 0x0, symName: _process_log_file, symObjAddr: 0x65C, symBinAddr: 0x100004334, symSize: 0x3A8 }
+  - { offset: 0x2C5, size: 0x8, addend: 0x0, symName: _free_arguments, symObjAddr: 0xA04, symBinAddr: 0x1000046DC, symSize: 0xAC }
+  - { offset: 0x2E9, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0xAB0, symBinAddr: 0x100004788, symSize: 0x7C }
+  - { offset: 0xCC3, size: 0x8, addend: 0x0, symName: _is_numeric, symObjAddr: 0x0, symBinAddr: 0x100004804, symSize: 0xAC }
+  - { offset: 0xE1E, size: 0x8, addend: 0x0, symName: _is_numeric, symObjAddr: 0x0, symBinAddr: 0x100004804, symSize: 0xAC }
+  - { offset: 0xE54, size: 0x8, addend: 0x0, symName: _datalog_create, symObjAddr: 0xAC, symBinAddr: 0x1000048B0, symSize: 0x94 }
+  - { offset: 0xE8A, size: 0x8, addend: 0x0, symName: _datalog_clear, symObjAddr: 0x140, symBinAddr: 0x100004944, symSize: 0x70 }
+  - { offset: 0xECA, size: 0x8, addend: 0x0, symName: _channel_destroy, symObjAddr: 0x1B0, symBinAddr: 0x1000049B4, symSize: 0x60 }
+  - { offset: 0xEEE, size: 0x8, addend: 0x0, symName: _datalog_destroy, symObjAddr: 0x210, symBinAddr: 0x100004A14, symSize: 0x5C }
+  - { offset: 0xF12, size: 0x8, addend: 0x0, symName: _datalog_from_csv_log, symObjAddr: 0x26C, symBinAddr: 0x100004A70, symSize: 0x6DC }
+  - { offset: 0x10F2, size: 0x8, addend: 0x0, symName: _trim_whitespace, symObjAddr: 0x948, symBinAddr: 0x10000514C, symSize: 0xF0 }
+  - { offset: 0x1127, size: 0x8, addend: 0x0, symName: _channel_create, symObjAddr: 0xA38, symBinAddr: 0x10000523C, symSize: 0xCC }
+  - { offset: 0x1187, size: 0x8, addend: 0x0, symName: _data_log_print_channels, symObjAddr: 0xB04, symBinAddr: 0x100005308, symSize: 0xE8 }
+  - { offset: 0x11F1, size: 0x8, addend: 0x0, symName: _datalog_duration, symObjAddr: 0xBEC, symBinAddr: 0x1000053F0, symSize: 0x6C }
+  - { offset: 0x1219, size: 0x8, addend: 0x0, symName: _channel_avg_frequency, symObjAddr: 0xC58, symBinAddr: 0x10000545C, symSize: 0xA8 }
+  - { offset: 0x124F, size: 0x8, addend: 0x0, symName: _datalog_channel_count, symObjAddr: 0xD00, symBinAddr: 0x100005504, symSize: 0x1C }
+  - { offset: 0x1277, size: 0x8, addend: 0x0, symName: _datalog_end, symObjAddr: 0xD1C, symBinAddr: 0x100005520, symSize: 0xCC }
+  - { offset: 0x12E5, size: 0x8, addend: 0x0, symName: _datalog_start, symObjAddr: 0xDE8, symBinAddr: 0x1000055EC, symSize: 0xD0 }
+  - { offset: 0x1353, size: 0x8, addend: 0x0, symName: _datalog_free, symObjAddr: 0xEB8, symBinAddr: 0x1000056BC, symSize: 0x3C }
+  - { offset: 0x1377, size: 0x8, addend: 0x0, symName: _datalog_from_can_log, symObjAddr: 0xEF4, symBinAddr: 0x1000056F8, symSize: 0x1C }
+  - { offset: 0x13BB, size: 0x8, addend: 0x0, symName: _datalog_from_accessport_log, symObjAddr: 0xF10, symBinAddr: 0x100005714, symSize: 0x18 }
+  - { offset: 0x13F1, size: 0x8, addend: 0x0, symName: _datalog_add_channel, symObjAddr: 0xF28, symBinAddr: 0x10000572C, symSize: 0xB8 }
+  - { offset: 0x144D, size: 0x8, addend: 0x0, symName: _channel_start, symObjAddr: 0xFE0, symBinAddr: 0x1000057E4, symSize: 0x60 }
+  - { offset: 0x1477, size: 0x8, addend: 0x0, symName: _channel_end, symObjAddr: 0x1040, symBinAddr: 0x100005844, symSize: 0x70 }
+  - { offset: 0x14A1, size: 0x8, addend: 0x0, symName: _split_csv_line, symObjAddr: 0x10B0, symBinAddr: 0x1000058B4, symSize: 0xE4 }
+  - { offset: 0x171D, size: 0x8, addend: 0x0, symName: _motec_log_create, symObjAddr: 0x0, symBinAddr: 0x100005998, symSize: 0xCC }
+  - { offset: 0x1AE3, size: 0x8, addend: 0x0, symName: _motec_log_create, symObjAddr: 0x0, symBinAddr: 0x100005998, symSize: 0xCC }
+  - { offset: 0x1B0B, size: 0x8, addend: 0x0, symName: _motec_log_free, symObjAddr: 0xCC, symBinAddr: 0x100005A64, symSize: 0x1E8 }
+  - { offset: 0x1B4B, size: 0x8, addend: 0x0, symName: _motec_log_initialize, symObjAddr: 0x2B4, symBinAddr: 0x100005C4C, symSize: 0x348 }
+  - { offset: 0x1B9D, size: 0x8, addend: 0x0, symName: _motec_log_add_channel, symObjAddr: 0x5FC, symBinAddr: 0x100005F94, symSize: 0x3C4 }
+  - { offset: 0x1C65, size: 0x8, addend: 0x0, symName: _motec_log_add_all_channels, symObjAddr: 0x9C0, symBinAddr: 0x100006358, symSize: 0xCC }
+  - { offset: 0x1CB7, size: 0x8, addend: 0x0, symName: _motec_log_write, symObjAddr: 0xA8C, symBinAddr: 0x100006424, symSize: 0x1A8 }
+  - { offset: 0x1D33, size: 0x8, addend: 0x0, symName: _write_ld_header, symObjAddr: 0xC34, symBinAddr: 0x1000065CC, symSize: 0x30C }
+  - { offset: 0x1D73, size: 0x8, addend: 0x0, symName: _write_ld_channel, symObjAddr: 0xF40, symBinAddr: 0x1000068D8, symSize: 0x22C }
+  - { offset: 0x1DD5, size: 0x8, addend: 0x0, symName: _motec_log_set_metadata, symObjAddr: 0x116C, symBinAddr: 0x100006B04, symSize: 0x208 }
+  - { offset: 0x21E9, size: 0x8, addend: 0x0, symName: _ld_read_file, symObjAddr: 0x0, symBinAddr: 0x100006D0C, symSize: 0x19C }
+  - { offset: 0x2239, size: 0x8, addend: 0x0, symName: _ld_read_file, symObjAddr: 0x0, symBinAddr: 0x100006D0C, symSize: 0x19C }
+  - { offset: 0x229F, size: 0x8, addend: 0x0, symName: _read_channel, symObjAddr: 0x19C, symBinAddr: 0x100006EA8, symSize: 0x2B8 }
+  - { offset: 0x2310, size: 0x8, addend: 0x0, symName: _ld_free_data, symObjAddr: 0x454, symBinAddr: 0x100007160, symSize: 0x1CC }
+  - { offset: 0x2350, size: 0x8, addend: 0x0, symName: _decode_string, symObjAddr: 0x620, symBinAddr: 0x10000732C, symSize: 0xF8 }
+  - { offset: 0x239E, size: 0x8, addend: 0x0, symName: _read_channel_data, symObjAddr: 0x718, symBinAddr: 0x100007424, symSize: 0x1E0 }
+...
