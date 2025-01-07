@@ -3,12 +3,13 @@
 This project is a C implementation of the original Python-based Motec Log Generator. The C version is intended to replicate the functionality of the Python version while improving performance.
 
 ## Known Issues
-- **CSV Parsing:** There appears to be an issue with parsing the inputted CSV file. For example, when tested with the 0013.csv file:
-  - Expected behavior: The software should parse 294 columns.
-  - Current behavior: Only 44 columns are being parsed.
-  - This may be the cause of the `".ld file cannot open"` error when I try to open the generated `.ld` file with the Motec software.
-  - There are similar issue with other csv files - not all of the columns are getting parsed.
+- **CSV Parsing:**
+  - For the `0013.csv` file:
+    - **Python Version (Original):** Parses 290 columns.
+    - **C Version:** Parses 294 columns.
 
+While 294 lines matches up with the actual amount of columns in the csv, the descrepancy could be causing the issue. There are similar discrepancies are  with other CSV files, where the Python version parses fewer lines than the C version. This might not be behind the `.ld file cannot open` error, but it's something to take note of.
+    
 ## Usage
 
 ### Compilation
