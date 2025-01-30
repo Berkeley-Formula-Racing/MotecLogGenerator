@@ -9,28 +9,28 @@
 
 // Message structure
 typedef struct Message {
-    double timestamp;
-    double value;
+    double timestamp; // time when data was recorded
+    double value; // the actual value recorded at that time stamp
 } Message;
 
 // Channel structure
 typedef struct Channel {
     char* name;
     char* units;
-    int decimals;
+    int decimals; // number of decimals for display
     Message* messages;
-    size_t message_count;
+    size_t message_count; // current number of messages
     size_t message_capacity;
-    double (*data_type)(double); 
+    double (*data_type)(double); // Function pointer for datatype conversion
     double frequency;
 } Channel;
 
 // DataLog structure
 typedef struct DataLog {
-    char* name;
-    Channel** channels;
-    size_t channel_count;
-    size_t channel_capacity;
+    char* name; 
+    Channel** channels; // pointer to channel structures
+    size_t channel_count; // number of channels currently in use
+    size_t channel_capacity; 
 } DataLog;
 
 

@@ -153,3 +153,56 @@ void ld_free_data(LDData* data) {
     free(data->channels);
     free(data);
 }
+
+void ld_write_file(LDData* data, const char* filename) {
+    FILE* f = fopen(filename, "wb");
+    if (!f) {
+        return;
+    }
+
+    // Write header
+    fwrite(data->head, sizeof(LDHeader), 1, f);
+
+    // Write channels
+    for (int i = 0; i < data->channel_count; i++) {
+        LDChannel* channel = data->channels[i];
+        
+        // Write channel metadata
+        fwrite(&channel->meta_ptr, sizeof(int), 1, f);
+        fwrite(&channel->prev_meta_ptr, sizeof(int), 1, f);
+        fwrite(&channel->next_meta_ptr, sizeof(int), 1, f);
+        fwrite(&channel->data_ptr, sizeof(int), 1, f);
+        fwrite(&channel->data_len, sizeof(int), 1, f);
+        fwrite(&channel->dtype, sizeof(DataType), 1, f);
+        fwrite(&channel->freq, sizeof(int), 1, f);
+        fwrite(&channel->shift, sizeof(int), 1, f);
+        fwrite(&channel->mul, sizeof(int), 1, f);
+        fwrite(&channel->scale, sizeof(int), 1, f);
+        fwrite(&channel->dec, sizeof(int), 1, f);
+        fwrite(channel->name, sizeof(char), 32, f);
+        fwrite(channel->short_name, sizeof(char), 8, f);
+        fwrite(channel->unit, sizeof(char), 12, f);
+
+        // Write channel data
+        if (channel->data && channel->data_len > 0) {
+            size_t data_size;
+            switch (channel->dtype) {
+                case DTYPE_FLOAT16:
+                case DTYPE_INT16:
+                    data_size = 2;
+                    break;
+                case DTYPE_FLOAT32:
+                case DTYPE_INT32:
+                    data_size = 4;
+                    break;
+                default:
+                    data_size = 0;
+            }
+            if (data_size > 0) {
+                fwrite(channel->data, data_size, channel->data_len, f);
+            }
+        }
+    }
+
+    fclose(f);
+}

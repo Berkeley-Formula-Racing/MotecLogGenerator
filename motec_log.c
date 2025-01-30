@@ -3,6 +3,8 @@
 
 #define INITIAL_CHANNEL_CAPACITY 1000
 
+
+// Creates new MotecLog structure
 MotecLog* motec_log_create(void) {
     MotecLog* log = (MotecLog*)malloc(sizeof(MotecLog));
     if (!log) return NULL;
@@ -255,24 +257,29 @@ void write_ld_header(LDHeader* header, FILE* f, int channel_count) {
     }
 }
 
-void write_ld_channel(LDChannel* channel, FILE* f, int channel_index) {
 
-    fwrite(&channel->prev_meta_ptr, sizeof(int), 1, f);
-    fwrite(&channel->next_meta_ptr, sizeof(int), 1, f);
-    fwrite(&channel->data_ptr, sizeof(int), 1, f);
-    fwrite(&channel->data_len, sizeof(int), 1, f);
+void write_ld_channel(LDChannel* channel, FILE* f, int channel_index) {
+    // calculate data type flags similar to Python version
+    uint16_t dtype_a = (channel->dtype == DTYPE_FLOAT32 || channel->dtype == DTYPE_FLOAT16) ? 0x07 : 0x00; // specifies type the data should be (0x07 for floats, 0x00 for ints)
+    uint16_t dtype = (channel->dtype == DTYPE_FLOAT16 || channel->dtype == DTYPE_INT16) ? 2 : 4; // should be 2 and 4 bytes
     
-    uint16_t dtype_a = (channel->dtype == DTYPE_FLOAT32 || channel->dtype == DTYPE_FLOAT16) ? 0x07 : 0x00;
-    uint16_t dtype = (channel->dtype == DTYPE_FLOAT16 || channel->dtype == DTYPE_INT16) ? 2 : 4;
+    // magic number from Python version (0x2ee1 + n)
+    uint16_t magic = 0x2ee1 + channel_index;
+
+    fwrite(&channel->prev_meta_ptr, sizeof(int), 1, f); // metadata pointer
+    fwrite(&channel->next_meta_ptr, sizeof(int), 1, f);
+    fwrite(&channel->data_ptr, sizeof(int), 1, f); // data pointer
+    fwrite(&channel->data_len, sizeof(int), 1, f); // len of data
+
+    fwrite(&magic, sizeof(uint16_t), 1, f);
     fwrite(&dtype_a, sizeof(uint16_t), 1, f);
     fwrite(&dtype, sizeof(uint16_t), 1, f);
-    
     fwrite(&channel->freq, sizeof(int16_t), 1, f);
     fwrite(&channel->shift, sizeof(int16_t), 1, f);
     fwrite(&channel->mul, sizeof(int16_t), 1, f);
     fwrite(&channel->scale, sizeof(int16_t), 1, f);
     fwrite(&channel->dec, sizeof(int16_t), 1, f);
-    
+
     fwrite(channel->name, sizeof(char), 32, f);
     fwrite(channel->short_name, sizeof(char), 8, f);
     fwrite(channel->unit, sizeof(char), 12, f);
@@ -300,4 +307,5 @@ void motec_log_set_metadata(MotecLog* log,
     if (event_session) strncpy(log->event_session, event_session, sizeof(log->event_session)-1);
     if (long_comment) strncpy(log->long_comment, long_comment, sizeof(log->long_comment)-1);
     if (short_comment) strncpy(log->short_comment, short_comment, sizeof(log->short_comment)-1);
-}
+} 
+

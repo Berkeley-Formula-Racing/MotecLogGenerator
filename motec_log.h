@@ -37,6 +37,7 @@ int motec_log_add_channel(MotecLog* log, Channel* channel);
 int motec_log_add_all_channels(MotecLog* log, DataLog* data_log);
 int motec_log_write(MotecLog* log, const char* filename);
 void write_ld_header(LDHeader* header, FILE* f, int channel_count);
+// void write_ld_channel(LDChannel* channel, FILE* f, int channel_index);
 void write_ld_channel(LDChannel* channel, FILE* f, int channel_index);
 
 void motec_log_set_metadata(MotecLog* log, 

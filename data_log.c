@@ -5,6 +5,7 @@
 #define MAX_COLUMNS 1000
 #define INITIAL_CHANNEL_CAPACITY 500
 
+// Checks if string represents valid numeric value. Returns 1 if it is numeric, 0 otherwise
 int is_numeric(const char* str) {
     if (!str || !*str) return 0;  
     // printf("Debug - Checking if numeric: '%s'\n", str); // Debug
@@ -13,6 +14,7 @@ int is_numeric(const char* str) {
     return *endptr == '\0' || isspace((unsigned char)*endptr);
 }
 
+// Creates new DataLog structure, return null if memory allocation not working
 DataLog* datalog_create(const char* name) {
     DataLog* log = (DataLog*)malloc(sizeof(DataLog));
     if (!log) return NULL;
@@ -25,6 +27,7 @@ DataLog* datalog_create(const char* name) {
     return log;
 }
 
+// Removes all channels from DataLog
 void datalog_clear(DataLog* log) {
     for (size_t i = 0; i < log->channel_count; i++) {
         channel_destroy(log->channels[i]);
@@ -32,6 +35,7 @@ void datalog_clear(DataLog* log) {
     log->channel_count = 0;
 }
 
+// Completeley frees a DataLog and all of the channels
 void datalog_destroy(DataLog* log) {
     if (log) {
         datalog_clear(log);
@@ -41,7 +45,7 @@ void datalog_destroy(DataLog* log) {
     }
 }
 
-
+// CSV parsing, 0 = good, -1 = bad
 int datalog_from_csv_log(DataLog* log, FILE* f) {
     if (!f) return -1;
     
@@ -121,7 +125,7 @@ int datalog_from_csv_log(DataLog* log, FILE* f) {
         }
     }
 
-    // calculate channel frequencies, this may not be right on it's own but is probably due to errors above
+    // gets channel frequencies, this may not be right on it's own but is probably due to errors above
     double duration = last_timestamp - first_timestamp;
     if (duration > 0) {
         for (size_t i = 0; i < log->channel_count; i++) {
