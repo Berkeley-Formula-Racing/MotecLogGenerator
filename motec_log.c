@@ -263,7 +263,7 @@ void write_ld_channel(LDChannel* channel, FILE* f, int channel_index) {
     uint16_t dtype_a = (channel->dtype == DTYPE_FLOAT32 || channel->dtype == DTYPE_FLOAT16) ? 0x07 : 0x00; // specifies type the data should be (0x07 for floats, 0x00 for ints)
     uint16_t dtype = (channel->dtype == DTYPE_FLOAT16 || channel->dtype == DTYPE_INT16) ? 2 : 4; // should be 2 and 4 bytes
     
-    // magic number from Python version (0x2ee1 + n)
+    // magic number from Python version (0x2ee1 + n), never use this yet
     uint16_t magic = 0x2ee1 + channel_index;
 
     fwrite(&channel->prev_meta_ptr, sizeof(int), 1, f); // metadata pointer
