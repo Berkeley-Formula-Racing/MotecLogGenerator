@@ -36,53 +36,29 @@ typedef struct {
     void* data;  
 } LDChannel;
 
-// vehicle info
 typedef struct {
-    char id[64];
-    unsigned int weight;
-    char type[32];
-    char comment[32];
-} LDVehicle;
-
-// more vehicle info
-typedef struct {
-    char name[64];
-    int vehicle_ptr;
-    LDVehicle* vehicle;
-} LDVenue;
-
-// event info
-typedef struct {
-    char name[64];
-    char session[64];
-    char comment[1024];
-    int venue_ptr;
-    LDVenue* venue;
-} LDEvent;
-
-typedef struct {
-    int meta_ptr;
-    int data_ptr;
-    int aux_ptr;
-    LDEvent* aux;
-    char driver[64];
-    char vehicleid[64];
-    char venue[64];
-    time_t datetime;
-    char short_comment[64];
-    char event[64];
-    char session[64];
+    //REWRITE THIS FOR MAGIC NUMBERS
+    uint32_t data_ptr; //4 BYTE DATA POINTER
+    int num_channels; //4 BYTE NUM CHANNELS
+    char* driver; //64 BYTE DRIVER
+    char* vehicle_id; //64 BYTE VEHICLE_ID
+    char* venue; //64 BYTE VENUE
+    char* short_comment; //64 BYTE COMMENT
+    char* event; //64 BYTE EVENT
+    char* session; //64 BYTE SESSION
 } LDHeader;
 
 typedef struct {
     LDHeader* head;
     LDChannel** channels;
     int channel_count;
+    int channel_capacity;
 } LDData;
 
 LDData* ld_read_file(const char* filename);
 void ld_free_data(LDData* data);
 LDChannel* ld_get_channel_by_name(LDData* data, const char* name);
 void ld_write_file(LDData* data, const char* filename);
+void initialize_ld_header(LDHeader* header, int num_channels);
 
 #endif

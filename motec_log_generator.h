@@ -7,28 +7,17 @@
 #include "data_log.h"
 #include "motec_log.h"
 
-typedef enum {
-    LOG_TYPE_CAN,
-    LOG_TYPE_CSV,
-    LOG_TYPE_ACCESSPORT
-} LogType;
 
 typedef struct {
     char* log_path;
-    LogType log_type;
     char* output_path;
     float frequency;
-    char* dbc_path;
     
     char* driver;
     char* vehicle_id;
-    int vehicle_weight;
-    char* vehicle_type;
-    char* vehicle_comment;
     char* venue_name;
     char* event_name;
     char* event_session;
-    char* long_comment;
     char* short_comment;
 } GeneratorArgs;
 

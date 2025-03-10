@@ -112,7 +112,7 @@ LDData* ld_read_file(const char* filename) {
     data->channels = malloc(sizeof(LDChannel*) * MAX_CHANNELS);
     data->channel_count = 0;
     
-    int meta_ptr = data->head->meta_ptr;
+    int meta_ptr = 0x00002C48;
     while (meta_ptr && data->channel_count < MAX_CHANNELS) {
         LDChannel* chan = read_channel(f, meta_ptr);
         if (!chan) break;
@@ -126,18 +126,16 @@ LDData* ld_read_file(const char* filename) {
 }
 
 void ld_free_data(LDData* data) {
+    //REWRITE THIS FOR MAGIC NUMBERS
     if (!data) return;
     
     if (data->head) {
-        if (data->head->aux) {
-            if (data->head->aux->venue) {
-                if (data->head->aux->venue->vehicle) {
-                    free(data->head->aux->venue->vehicle);
-                }
-                free(data->head->aux->venue);
-            }
-            free(data->head->aux);
-        }
+        free(data->head->driver);
+        free(data->head->vehicle_id);
+        free(data->head->venue);
+        free(data->head->short_comment);
+        free(data->head->event);
+        free(data->head->session);
         free(data->head);
     }
     
@@ -152,4 +150,26 @@ void ld_free_data(LDData* data) {
     
     free(data->channels);
     free(data);
+}
+
+void initialize_ld_header(LDHeader* header, int num_channels){
+    // int data_ptr; //4 BYTE DATA POINTER
+    // int num_channels; //4 BYTE NUM CHANNELS
+    // char* date; //16 BYTE DATE
+    // char* time; //16 BYTE TIME
+    // char* driver; //64 BYTE DRIVER
+    // char* vehicle_id; //64 BYTE VEHICLE_ID
+    // char* venue; //64 BYTE VENUE
+    // char* short_comment; //64 BYTE COMMENT
+    // char* event; //64 BYTE EVENT
+    // char* session; //64 BYTE SESSION
+
+    header->data_ptr = 0;
+    header->num_channels = num_channels;
+    header->driver = (char*)calloc(65,sizeof(char)); 
+    header->vehicle_id = (char*)calloc(65,sizeof(char)); 
+    header->venue = (char*)calloc(65,sizeof(char)); 
+    header->short_comment = (char*)calloc(65,sizeof(char)); 
+    header->event = (char*)calloc(65,sizeof(char)); 
+    header->session = (char*)calloc(65,sizeof(char)); 
 }

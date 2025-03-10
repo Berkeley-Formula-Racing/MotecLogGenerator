@@ -1,118 +1,37 @@
 #include "motec_log.h"
 #include <string.h>
+#include <stdint.h>
 
 #define INITIAL_CHANNEL_CAPACITY 1000
 
-MotecLog* motec_log_create(void) {
-    MotecLog* log = (MotecLog*)malloc(sizeof(MotecLog));
+LDData* motec_log_create(int channel_count) {
+    LDData* log = (LDData*)malloc(sizeof(LDData));
     if (!log) return NULL;
     
-    memset(log, 0, sizeof(MotecLog));
+    memset(log, 0, sizeof(LDData));
     
     log->channel_capacity = INITIAL_CHANNEL_CAPACITY;
-    log->ld_channels = (LDChannel**)malloc(sizeof(LDChannel*) * log->channel_capacity);
-    if (!log->ld_channels) {
+    log->channels = (LDChannel**)malloc(sizeof(LDChannel*) * log->channel_capacity);
+    if (!log->channels) {
         free(log);
         return NULL;
     }
     
-    log->channel_count = 0;
-    log->datetime = time(NULL);
+    log->channel_count = channel_count;
+    log->head = (LDHeader*)malloc(sizeof(LDHeader*));
+    //time_t curTime = time(NULL); //NEED TO DO MANUALLY
+    //struct tm *info = localtime(&curTime); //DATE FORMAT SHOULD BE M/D/Y and H/M/S
     
     return log;
 }
 
-void motec_log_free(MotecLog* log) {
-    if (!log) return;
-    
-    if (log->ld_channels) {
-        for (int i = 0; i < log->channel_count; i++) {
-            if (log->ld_channels[i]) {
-                if (log->ld_channels[i]->data) {
-                    free(log->ld_channels[i]->data);
-                }
-                free(log->ld_channels[i]);
-            }
-        }
-        free(log->ld_channels);
-    }
-    
-    if (log->ld_header) {
-        if (log->ld_header->aux) {
-            if (log->ld_header->aux->venue) {
-                if (log->ld_header->aux->venue->vehicle) {
-                    free(log->ld_header->aux->venue->vehicle);
-                }
-                free(log->ld_header->aux->venue);
-            }
-            free(log->ld_header->aux);
-        }
-        free(log->ld_header);
-    }
-    
-    free(log);
+void motec_log_free(LDData* log) {
+    //REWRITE THIS FOR MAGIC NUMBERS
+    ld_free_data(log);
 }
 
-int motec_log_initialize(MotecLog* log) {
-    if (!log) return -1;
-    
-    // Create vehicle
-    LDVehicle* vehicle = (LDVehicle*)malloc(sizeof(LDVehicle));
-    if (!vehicle) return -1;
-    
-    strncpy(vehicle->id, log->vehicle_id, sizeof(vehicle->id)-1);
-    vehicle->weight = log->vehicle_weight;
-    strncpy(vehicle->type, log->vehicle_type, sizeof(vehicle->type)-1);
-    strncpy(vehicle->comment, log->vehicle_comment, sizeof(vehicle->comment)-1);
-    
-    // Create venue
-    LDVenue* venue = (LDVenue*)malloc(sizeof(LDVenue));
-    if (!venue) {
-        free(vehicle);
-        return -1;
-    }
-    
-    strncpy(venue->name, log->venue_name, sizeof(venue->name)-1);
-    venue->vehicle_ptr = VEHICLE_PTR;
-    venue->vehicle = vehicle;
-    
-    LDEvent* event = (LDEvent*)malloc(sizeof(LDEvent));
-    if (!event) {
-        free(venue);
-        free(vehicle);
-        return -1;
-    }
-    
-    strncpy(event->name, log->event_name, sizeof(event->name)-1);
-    strncpy(event->session, log->event_session, sizeof(event->session)-1);
-    strncpy(event->comment, log->long_comment, sizeof(event->comment)-1);
-    event->venue_ptr = VENUE_PTR;
-    event->venue = venue;
-    
-    log->ld_header = (LDHeader*)malloc(sizeof(LDHeader));
-    if (!log->ld_header) {
-        free(event);
-        free(venue);
-        free(vehicle);
-        return -1;
-    }
-    
-    log->ld_header->meta_ptr = HEADER_PTR;
-    log->ld_header->data_ptr = HEADER_PTR;
-    log->ld_header->aux_ptr = EVENT_PTR;
-    log->ld_header->aux = event;
-    strncpy(log->ld_header->driver, log->driver, sizeof(log->ld_header->driver)-1);
-    strncpy(log->ld_header->vehicleid, log->vehicle_id, sizeof(log->ld_header->vehicleid)-1);
-    strncpy(log->ld_header->venue, log->venue_name, sizeof(log->ld_header->venue)-1);
-    log->ld_header->datetime = log->datetime;
-    strncpy(log->ld_header->short_comment, log->short_comment, sizeof(log->ld_header->short_comment)-1);
-    strncpy(log->ld_header->event, log->event_name, sizeof(log->ld_header->event)-1);
-    strncpy(log->ld_header->session, log->event_session, sizeof(log->ld_header->session)-1);
-    
-    return 0;
-}
 
-int motec_log_add_channel(MotecLog* log, Channel* channel) {
+int motec_log_add_channel(LDData* log, Channel* channel) {
     if (!log || !channel) return -1;
 
     // Debug
@@ -121,30 +40,30 @@ int motec_log_add_channel(MotecLog* log, Channel* channel) {
     
     if (log->channel_count >= log->channel_capacity) {
         int new_capacity = log->channel_capacity * 2;
-        LDChannel** new_channels = (LDChannel**)realloc(log->ld_channels, 
+        LDChannel** new_channels = (LDChannel**)realloc(log->channels, 
             sizeof(LDChannel*) * new_capacity);
         if (!new_channels) return -1;
         
-        log->ld_channels = new_channels;
+        log->channels = new_channels;
         log->channel_capacity = new_capacity;
     }
     
-    log->ld_header->data_ptr += sizeof(LDChannel);
+    log->head->data_ptr += sizeof(LDChannel);
     
     for (int i = 0; i < log->channel_count; i++) {
-        log->ld_channels[i]->data_ptr += sizeof(LDChannel);
+        log->channels[i]->data_ptr += sizeof(LDChannel);
     }
     
     int meta_ptr, prev_meta_ptr, data_ptr;
     if (log->channel_count > 0) {
-        meta_ptr = log->ld_channels[log->channel_count-1]->next_meta_ptr;
-        prev_meta_ptr = log->ld_channels[log->channel_count-1]->meta_ptr;
-        data_ptr = log->ld_channels[log->channel_count-1]->data_ptr + 
-            log->ld_channels[log->channel_count-1]->data_len * sizeof(float);
+        meta_ptr = log->channels[log->channel_count-1]->next_meta_ptr;
+        prev_meta_ptr = log->channels[log->channel_count-1]->meta_ptr;
+        data_ptr = log->channels[log->channel_count-1]->data_ptr + 
+            log->channels[log->channel_count-1]->data_len * sizeof(float);
     } else {
-        meta_ptr = HEADER_PTR;
+        meta_ptr = META_PTR;
         prev_meta_ptr = 0;
-        data_ptr = log->ld_header->data_ptr;
+        data_ptr = log->head->data_ptr;
     }
     
     LDChannel* ld_channel = (LDChannel*)malloc(sizeof(LDChannel));
@@ -174,11 +93,11 @@ int motec_log_add_channel(MotecLog* log, Channel* channel) {
         ((float*)ld_channel->data)[i] = (float)channel->messages[i].value;
     }
     
-    log->ld_channels[log->channel_count++] = ld_channel;
+    log->channels[log->channel_count++] = ld_channel;
     return 0;
 }
 
-int motec_log_add_all_channels(MotecLog* log, DataLog* data_log) {
+int motec_log_add_all_channels(LDData* log, DataLog* data_log) {
     if (!log || !data_log) return -1;
     
     for (int i = 0; i < data_log->channel_count; i++) { // maybe error handling issue?
@@ -189,19 +108,19 @@ int motec_log_add_all_channels(MotecLog* log, DataLog* data_log) {
     return 0;
 }
 
-int motec_log_write(MotecLog* log, const char* filename) {
+int motec_log_write(LDData* log, const char* filename) {
     if (!log || !filename) return -1;
     
     FILE* f = fopen(filename, "wb");
     if (!f) return -1;
     
     if (log->channel_count > 0) {
-        log->ld_channels[log->channel_count-1]->next_meta_ptr = 0;
+        log->channels[log->channel_count-1]->next_meta_ptr = 0;
         
-        write_ld_header(log->ld_header, f, log->channel_count);
+        write_ld_header(log->head, f, log->channel_count);
         
         for (int i = 0; i < log->channel_count; i++) {
-            LDChannel* chan = log->ld_channels[i];
+            LDChannel* chan = log->channels[i];
             fseek(f, chan->meta_ptr, SEEK_SET);
             write_ld_channel(chan, f, i);
             
@@ -209,50 +128,11 @@ int motec_log_write(MotecLog* log, const char* filename) {
             fwrite(chan->data, sizeof(float), chan->data_len, f);
         }
     } else {
-        write_ld_header(log->ld_header, f, 0);
+        write_ld_header(log->head, f, 0);
     }
     
     fclose(f);
     return 0;
-}
-
-void write_ld_header(LDHeader* header, FILE* f, int channel_count) {
-
-    fwrite(&header->meta_ptr, sizeof(int), 1, f);
-    fwrite(&header->data_ptr, sizeof(int), 1, f);
-    fwrite(&header->aux_ptr, sizeof(int), 1, f);
-    
-    fwrite(header->driver, sizeof(char), 64, f);
-    fwrite(header->vehicleid, sizeof(char), 64, f);
-    fwrite(header->venue, sizeof(char), 64, f);
-    
-    fwrite(&header->datetime, sizeof(time_t), 1, f);
-    
-    fwrite(header->short_comment, sizeof(char), 64, f);
-    fwrite(header->event, sizeof(char), 64, f);
-    fwrite(header->session, sizeof(char), 64, f);
-    
-    if (header->aux) {
-        fseek(f, header->aux_ptr, SEEK_SET);
-        fwrite(header->aux->name, sizeof(char), 64, f);
-        fwrite(header->aux->session, sizeof(char), 64, f);
-        fwrite(header->aux->comment, sizeof(char), 1024, f);
-        fwrite(&header->aux->venue_ptr, sizeof(int), 1, f);
-        
-        if (header->aux->venue) {
-            fseek(f, header->aux->venue_ptr, SEEK_SET);
-            fwrite(header->aux->venue->name, sizeof(char), 64, f);
-            fwrite(&header->aux->venue->vehicle_ptr, sizeof(int), 1, f);
-            
-            if (header->aux->venue->vehicle) {
-                fseek(f, header->aux->venue->vehicle_ptr, SEEK_SET);
-                fwrite(header->aux->venue->vehicle->id, sizeof(char), 64, f);
-                fwrite(&header->aux->venue->vehicle->weight, sizeof(unsigned int), 1, f);
-                fwrite(header->aux->venue->vehicle->type, sizeof(char), 32, f);
-                fwrite(header->aux->venue->vehicle->comment, sizeof(char), 32, f);
-            }
-        }
-    }
 }
 
 void write_ld_channel(LDChannel* channel, FILE* f, int channel_index) {
@@ -278,26 +158,135 @@ void write_ld_channel(LDChannel* channel, FILE* f, int channel_index) {
     fwrite(channel->unit, sizeof(char), 12, f);
 }
 
-void motec_log_set_metadata(MotecLog* log,
+void motec_log_set_metadata(LDData* log,
                            const char* driver,
                            const char* vehicle_id, 
-                           unsigned int vehicle_weight,
-                           const char* vehicle_type,
-                           const char* vehicle_comment,
                            const char* venue_name,
                            const char* event_name,
                            const char* event_session,
-                           const char* long_comment,
                            const char* short_comment) {
+                            
+    if (driver) strncpy(log->head->driver, driver, sizeof(log->head->driver)-1);
+    if (vehicle_id) strncpy(log->head->vehicle_id, vehicle_id, sizeof(log->head->vehicle_id)-1);
+    if (venue_name) strncpy(log->head->venue, venue_name, sizeof(log->head->venue)-1);
+    if (event_name) strncpy(log->head->event, event_name, sizeof(log->head->event)-1);
+    if (event_session) strncpy(log->head->session, event_session, sizeof(log->head->session)-1);
+    if (short_comment) strncpy(log->head->short_comment, short_comment, sizeof(log->head->short_comment)-1);
+    log->head->data_ptr = META_PTR + (log->channel_capacity * log->head->num_channels);
+}
+
+void write_ld_header(LDHeader* header, FILE* f, int channel_count){
+    uint32_t constants[3] = {0x40,0x00,META_PTR};
+    fwrite(constants,4,3,f);
+    fwrite(header->data_ptr,4,1,f);
+    uint32_t constants[12] = {0x00,0x00,0x00,0x00,0x00,0x1FF4,0x00,0x00,0x00,0x00,0x00,0x00};
+    fwrite(constants,4,12,f);
+    uint16_t constants[3] = {0x01,0x4240,0x0F};
+    fwrite(constants,2,3,f);
+    uint32_t constants[6] = {0x1F44,0x4C4441,0x00,0xADB001A4,(uint32_t)channel_count,0x00};
+    fwrite(constants,4,1,f);
+
+    time_t curTime = time(NULL); //NEED TO DO MANUALLY
+    struct tm *info = localtime(&curTime); //DATE FORMAT SHOULD BE M/D/Y and H/M/S
+    char dest[11];
+
+    time_t now;
+    struct tm *tm_struct;
+
+    time(&now);
+    tm_struct = localtime(&now);
+
+    strftime(dest, 11, "%D", tm_struct);
+    fwrite(dest, 1, 10, f);
+
+    uint16_t constants[3] = {0x00,0x00,0x00};
+    fwrite(constants,2,3,f);
+
+    uint32_t constants[4] = {0x00,0x00,0x00,0x00};
+    fwrite(constants,4,4,f);
+
+    fprintf(f,"%d:%d:%d",tm_struct->tm_hour,tm_struct->tm_min,tm_struct->tm_sec);
+
+    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00};        
+    fwrite(constants,4,6,f);
+
+
+    //REPLACE WITH DRIVER
+    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
+
+    for(int i = 0; i < 16; i++){
+        fwrite(constants,4,1,f);
+    }
+
+    //REPLACE WITH VEHICLE_ID
+    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
+
+    for(int i = 0; i < 16; i++){
+        fwrite(constants,4,1,f);
+    }
+
+    //NULL BYTES
+    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
+
+    for(int i = 0; i < 16; i++){
+        fwrite(constants,4,1,f);
+    }
+
+    //REPLACE WITH VENUE
+    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
+
+    for(int i = 0; i < 16; i++){
+        fwrite(constants,4,1,f);
+    }
+
+
+    for(int i = 0; i < 272; i++){
+        fwrite(constants,4,1,f);
+    }
+
+    uint32_t constants[1] = {0x0C81A4};        
+    fwrite(constants,4,1,f);
+
+    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
+
+    for(int i = 0; i < 16; i++){
+        fwrite(constants,4,1,f);
+    }
     
-    if (driver) strncpy(log->driver, driver, sizeof(log->driver)-1);
-    if (vehicle_id) strncpy(log->vehicle_id, vehicle_id, sizeof(log->vehicle_id)-1);
-    log->vehicle_weight = vehicle_weight;
-    if (vehicle_type) strncpy(log->vehicle_type, vehicle_type, sizeof(log->vehicle_type)-1);
-    if (vehicle_comment) strncpy(log->vehicle_comment, vehicle_comment, sizeof(log->vehicle_comment)-1);
-    if (venue_name) strncpy(log->venue_name, venue_name, sizeof(log->venue_name)-1);
-    if (event_name) strncpy(log->event_name, event_name, sizeof(log->event_name)-1);
-    if (event_session) strncpy(log->event_session, event_session, sizeof(log->event_session)-1);
-    if (long_comment) strncpy(log->long_comment, long_comment, sizeof(log->long_comment)-1);
-    if (short_comment) strncpy(log->short_comment, short_comment, sizeof(log->short_comment)-1);
+    uint16_t constants[3] = {0x00,0x00,0x00};
+    fwrite(constants,2,1,f);
+
+
+    //REPLACE WITH COMMENT
+    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
+
+    for(int i = 0; i < 16; i++){
+        fwrite(constants,4,1,f);
+    }
+
+    uint16_t constants[3] = {0x00,0x00,0x00};
+    fwrite(constants,2,1,f);
+
+
+    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
+
+    for(int i = 0; i < 31; i++){
+        fwrite(constants,4,1,f);
+    }
+
+
+    //REPLACE WITH EVENT
+    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
+
+    for(int i = 0; i < 16; i++){
+        fwrite(constants,4,1,f);
+    }
+
+
+    //REPLACE WITH SESSION
+    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
+
+    for(int i = 0; i < 16; i++){
+        fwrite(constants,4,1,f);
+    }
 }

@@ -3,7 +3,7 @@
 
 #define MAX_LINE_LENGTH 10000
 #define MAX_COLUMNS 1000
-#define INITIAL_CHANNEL_CAPACITY 500
+#define INITIAL_CHANNEL_CAPACITY 900
 
 int is_numeric(const char* str) {
     if (!str || !*str) return 0;  
