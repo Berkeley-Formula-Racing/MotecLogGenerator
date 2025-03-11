@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdint.h>
 
 #define MAX_STRING_LENGTH 1024
 #define MAX_CHANNELS 500

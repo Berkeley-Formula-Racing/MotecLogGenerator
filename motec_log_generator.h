@@ -6,6 +6,8 @@
 #include <string.h>
 #include "data_log.h"
 #include "motec_log.h"
+#include <stdint.h>
+#include <libgen.h>
 
 
 typedef struct {
@@ -23,7 +25,7 @@ typedef struct {
 
 int parse_arguments(int argc, char** argv, GeneratorArgs* args);
 char* get_output_filename(const char* input_path, const char* output_path);
-int process_log_file(const GeneratorArgs* args);
+int process_log_file(GeneratorArgs* args);
 void print_usage(void);
 void free_arguments(GeneratorArgs* args);
 

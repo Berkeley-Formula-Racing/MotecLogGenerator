@@ -176,15 +176,14 @@ void motec_log_set_metadata(LDData* log,
 }
 
 void write_ld_header(LDHeader* header, FILE* f, int channel_count){
-    uint32_t constants[3] = {0x40,0x00,META_PTR};
-    fwrite(constants,4,3,f);
-    fwrite(header->data_ptr,4,1,f);
-    uint32_t constants[12] = {0x00,0x00,0x00,0x00,0x00,0x1FF4,0x00,0x00,0x00,0x00,0x00,0x00};
-    fwrite(constants,4,12,f);
-    uint16_t constants[3] = {0x01,0x4240,0x0F};
-    fwrite(constants,2,3,f);
-    uint32_t constants[6] = {0x1F44,0x4C4441,0x00,0xADB001A4,(uint32_t)channel_count,0x00};
-    fwrite(constants,4,1,f);
+    uint32_t constants1[4] = {0x40,0x00,META_PTR,header->data_ptr};
+    fwrite(constants1,4,4,f);
+    uint32_t constants2[12] = {0x00,0x00,0x00,0x00,0x00,0x1FF4,0x00,0x00,0x00,0x00,0x00,0x00};
+    fwrite(constants2,4,12,f);
+    uint16_t constants3[3] = {0x01,0x4240,0x0F};
+    fwrite(constants3,2,3,f);
+    uint32_t constants4[6] = {0x1F44,0x4C4441,0x00,0xADB001A4,(uint32_t)channel_count,0x00};
+    fwrite(constants4,4,1,f);
 
     time_t curTime = time(NULL); //NEED TO DO MANUALLY
     struct tm *info = localtime(&curTime); //DATE FORMAT SHOULD BE M/D/Y and H/M/S
@@ -199,94 +198,94 @@ void write_ld_header(LDHeader* header, FILE* f, int channel_count){
     strftime(dest, 11, "%D", tm_struct);
     fwrite(dest, 1, 10, f);
 
-    uint16_t constants[3] = {0x00,0x00,0x00};
-    fwrite(constants,2,3,f);
+    uint16_t constants5[3] = {0x00,0x00,0x00};
+    fwrite(constants5,2,3,f);
 
-    uint32_t constants[4] = {0x00,0x00,0x00,0x00};
-    fwrite(constants,4,4,f);
+    uint32_t constants6[4] = {0x00,0x00,0x00,0x00};
+    fwrite(constants6,4,4,f);
 
     fprintf(f,"%d:%d:%d",tm_struct->tm_hour,tm_struct->tm_min,tm_struct->tm_sec);
 
-    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00};        
-    fwrite(constants,4,6,f);
+    uint32_t constants7[6] = {0x00,0x00,0x00,0x00,0x00,0x00};        
+    fwrite(constants7,4,6,f);
 
 
     //REPLACE WITH DRIVER
-    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
+    uint32_t constants8[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
 
     for(int i = 0; i < 16; i++){
-        fwrite(constants,4,1,f);
+        fwrite(constants8,4,1,f);
     }
 
     //REPLACE WITH VEHICLE_ID
-    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
+    uint32_t constants9[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
 
     for(int i = 0; i < 16; i++){
-        fwrite(constants,4,1,f);
+        fwrite(constants9,4,1,f);
     }
 
     //NULL BYTES
-    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
+    uint32_t constants10[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
 
     for(int i = 0; i < 16; i++){
-        fwrite(constants,4,1,f);
+        fwrite(constants10,4,1,f);
     }
 
     //REPLACE WITH VENUE
-    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
+    uint32_t constants11[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
 
     for(int i = 0; i < 16; i++){
-        fwrite(constants,4,1,f);
+        fwrite(constants11,4,1,f);
     }
 
 
     for(int i = 0; i < 272; i++){
-        fwrite(constants,4,1,f);
+        fwrite(constants11,4,1,f);
     }
 
-    uint32_t constants[1] = {0x0C81A4};        
-    fwrite(constants,4,1,f);
+    uint32_t constants12[1] = {0x0C81A4};        
+    fwrite(constants12,4,1,f);
 
-    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
+    uint32_t constants13[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
 
     for(int i = 0; i < 16; i++){
-        fwrite(constants,4,1,f);
+        fwrite(constants13,4,1,f);
     }
     
-    uint16_t constants[3] = {0x00,0x00,0x00};
-    fwrite(constants,2,1,f);
+    uint16_t constants14[3] = {0x00,0x00,0x00};
+    fwrite(constants14,2,1,f);
 
 
     //REPLACE WITH COMMENT
-    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
+    uint32_t constants15[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
 
     for(int i = 0; i < 16; i++){
-        fwrite(constants,4,1,f);
+        fwrite(constants15,4,1,f);
     }
 
-    uint16_t constants[3] = {0x00,0x00,0x00};
-    fwrite(constants,2,1,f);
+    uint16_t constants16[3] = {0x00,0x00,0x00};
+    fwrite(constants16,2,1,f);
 
 
-    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
+    uint32_t constants17[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
 
     for(int i = 0; i < 31; i++){
-        fwrite(constants,4,1,f);
+        fwrite(constants17,4,1,f);
     }
 
 
     //REPLACE WITH EVENT
-    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
+    uint32_t constants18[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
 
     for(int i = 0; i < 16; i++){
-        fwrite(constants,4,1,f);
+        fwrite(constants18,4,1,f);
     }
 
 
     //REPLACE WITH SESSION
-    uint32_t constants[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
+    uint32_t constants19[6] = {0x00,0x00,0x00,0x00,0x00,0x00}; 
 
     for(int i = 0; i < 16; i++){
-        fwrite(constants,4,1,f);
+        fwrite(constants19,4,1,f);
     }
 }

@@ -4,6 +4,7 @@
 #include "ldparser.h"
 #include "data_log.h"
 #include <time.h>
+#include <stdint.h>
 
 // constants from original file
 #define VEHICLE_PTR 1762
@@ -11,7 +12,7 @@
 #define EVENT_PTR 8180 //0x1FF4
 #define META_PTR 11336 //0x2C48
 
-LDData* motec_log_create(void);
+LDData* motec_log_create(int channel_count);
 void motec_log_free(LDData* log);
 int motec_log_add_channel(LDData* log, Channel* channel);
 int motec_log_add_all_channels(LDData* log, DataLog* data_log);

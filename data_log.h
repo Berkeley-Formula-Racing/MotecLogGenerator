@@ -6,6 +6,7 @@
 #include <string.h>
 #include <float.h>
 #include <math.h>
+#include <stdint.h>
 
 // Message structure
 typedef struct Message {

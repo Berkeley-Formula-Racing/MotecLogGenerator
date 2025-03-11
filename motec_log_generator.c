@@ -1,6 +1,7 @@
 #include "motec_log_generator.h"
 #include <sys/stat.h>
 #include <stdint.h>
+#include <libgen.h>
 
 #define DEFAULT_FREQUENCY 20.0
 
@@ -19,17 +20,18 @@ static const char* EPILOG =
     "MoTeC channel will be created for every channel logged, the name and units will be directly copied\n"
     "over.";
 
-//COMPILE USING: gcc -o motec_log_generator.c data_log.c motec_log.c ldparser.c -lm
-//RUN WITH: ./motec_log_generator <csv_file_path> CSV
+//COMPILE USING: gcc -o motec_log_generator motec_log_generator.c data_log.c motec_log.c ldparser.c -lm
+//RUN WITH: ./motec_log_generator <csv_file_path>
 
 int parse_arguments(int argc, char** argv, GeneratorArgs* args) {
-    if (argc < 3) {
+    if (argc < 2) {
         print_usage();
         return -1;
     }
 
     // defaults
-    memset(args, 0, sizeof(GeneratorArgs));
+    args->log_path = argv[1];
+    args->output_path = argv[1];
     args->frequency = DEFAULT_FREQUENCY;
     
     // static struct option long_options[] = {
@@ -189,7 +191,7 @@ int process_log_file(GeneratorArgs* args) {
 
 void print_usage(void) {
     printf("%s\n\n", DESCRIPTION);
-    printf("Usage: motec_log_generator <log> <log_type> [options]\n");
+    printf("Usage: motec_log_generator <log> [options]\n");
     printf("Log types: CAN, CSV, ACCESSPORT\n\n");
     printf("Options:\n");
     printf("  --output <file>        Output filename\n");
@@ -208,14 +210,14 @@ void print_usage(void) {
 }
 
 void free_arguments(GeneratorArgs* args) {
-    free(args->log_path);
-    free(args->output_path);
-    free(args->driver);
-    free(args->vehicle_id);
-    free(args->venue_name);
-    free(args->event_name);
-    free(args->event_session);
-    free(args->short_comment);
+    if(args->log_path) free(args->log_path);
+    if(args->output_path) free(args->output_path);
+    if(args->driver) free(args->driver);
+    if(args->vehicle_id) free(args->vehicle_id);
+    if(args->venue_name) free(args->venue_name);
+    if(args->event_name) free(args->event_name);
+    if(args->event_session) free(args->event_session);
+    if(args->short_comment) free(args->short_comment);
 }
 
 int main(int argc, char** argv) {

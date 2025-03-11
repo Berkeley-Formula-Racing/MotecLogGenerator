@@ -1,5 +1,6 @@
 #include "data_log.h"
 #include <ctype.h>
+#include <stdint.h>
 
 #define MAX_LINE_LENGTH 10000
 #define MAX_COLUMNS 1000
