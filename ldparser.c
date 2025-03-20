@@ -136,7 +136,7 @@ void ld_free_data(LDData* data) {
         free(data->head->short_comment);
         free(data->head->event);
         free(data->head->session);
-        free(data->head);
+        //free(data->head);
     }
     
     for (int i = 0; i < data->channel_count; i++) {

@@ -33,6 +33,19 @@ int parse_arguments(int argc, char** argv, GeneratorArgs* args) {
     args->log_path = argv[1];
     args->output_path = argv[1];
     args->frequency = DEFAULT_FREQUENCY;
+    // args->driver = argv[2];
+    // args->event_name = argv[3];
+    // args->event_session = argv[4];
+    // args->short_comment = argv[5];
+    // args->vehicle_id = argv[6];
+    // args->venue_name = argv[7];
+
+    args->driver = "driverdriverdriverdriverdriverdriverdriverdriverdriverdriverdriv\0";
+    args->event_name = "EventNameEventNameEventNameEventNameEventNameEventNameEventNameE\0";
+    args->event_session = "EventSessionEventSessionEventSessionEventSessionEventSessionEven\0";
+    args->short_comment = "CommentCommentCommentCommentCommentCommentCommentCommentCommentC\0";
+    args->vehicle_id = "IDIDIDIDIDIDIDIDIDIDIDIDIDIDIDIDIDIDIDIDIDIDIDIDIDIDIDIDIDIDIDID\0";
+    args->venue_name = "VenueVenueVenueVenueVenueVenueVenueVenueVenueVenueVenueVenueVenu\0";
     
     // static struct option long_options[] = {
     //     {"output", required_argument, 0, 'o'},
@@ -179,7 +192,7 @@ int process_log_file(GeneratorArgs* args) {
     result = motec_log_write(motec_log, output_filename);
 
     free(output_filename);
-    free(output_dir);
+    //free(output_dir);
     motec_log_free(motec_log);
     datalog_free(data_log); 
 
@@ -210,14 +223,14 @@ void print_usage(void) {
 }
 
 void free_arguments(GeneratorArgs* args) {
-    if(args->log_path) free(args->log_path);
-    if(args->output_path) free(args->output_path);
-    if(args->driver) free(args->driver);
-    if(args->vehicle_id) free(args->vehicle_id);
-    if(args->venue_name) free(args->venue_name);
-    if(args->event_name) free(args->event_name);
-    if(args->event_session) free(args->event_session);
-    if(args->short_comment) free(args->short_comment);
+    // if(args->log_path) free(args->log_path);
+    // if(args->output_path) free(args->output_path);
+    // if(args->driver) free(args->driver);
+    // if(args->vehicle_id) free(args->vehicle_id);
+    // if(args->venue_name) free(args->venue_name);
+    // if(args->event_name) free(args->event_name);
+    // if(args->event_session) free(args->event_session);
+    // if(args->short_comment) free(args->short_comment);
 }
 
 int main(int argc, char** argv) {

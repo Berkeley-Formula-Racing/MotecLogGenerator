@@ -11,14 +11,20 @@ LDData* motec_log_create(int channel_count) {
     memset(log, 0, sizeof(LDData));
     
     log->channel_capacity = INITIAL_CHANNEL_CAPACITY;
-    log->channels = (LDChannel**)malloc(sizeof(LDChannel*) * log->channel_capacity);
+    log->channels = (LDChannel**)malloc(sizeof(LDChannel*) * channel_count);
     if (!log->channels) {
         free(log);
         return NULL;
     }
     
-    log->channel_count = channel_count;
+    log->channel_count = 0;
     log->head = (LDHeader*)malloc(sizeof(LDHeader*));
+    log->head->driver = calloc(65,sizeof(char));
+    log->head->event = calloc(65,sizeof(char));
+    log->head->session = calloc(65,sizeof(char));
+    log->head->short_comment = calloc(65,sizeof(char));
+    log->head->vehicle_id = calloc(65,sizeof(char));
+    log->head->venue = calloc(65,sizeof(char));
     //time_t curTime = time(NULL); //NEED TO DO MANUALLY
     //struct tm *info = localtime(&curTime); //DATE FORMAT SHOULD BE M/D/Y and H/M/S
     
@@ -38,15 +44,15 @@ int motec_log_add_channel(LDData* log, Channel* channel) {
     // printf("Debug - Adding channel '%s' with unit '%s'\n", 
     //     channel->name, channel->units);
     
-    if (log->channel_count >= log->channel_capacity) {
-        int new_capacity = log->channel_capacity * 2;
-        LDChannel** new_channels = (LDChannel**)realloc(log->channels, 
-            sizeof(LDChannel*) * new_capacity);
-        if (!new_channels) return -1;
+    // if (log->channel_count >= log->channel_capacity) {
+    //     int new_capacity = log->channel_capacity * 2;
+    //     LDChannel** new_channels = (LDChannel**)realloc(log->channels, 
+    //         sizeof(LDChannel*) * new_capacity);
+    //     if (!new_channels) return -1;
         
-        log->channels = new_channels;
-        log->channel_capacity = new_capacity;
-    }
+    //     log->channels = new_channels;
+    //     log->channel_capacity = new_capacity;
+    // }
     
     log->head->data_ptr += sizeof(LDChannel);
     
@@ -166,12 +172,12 @@ void motec_log_set_metadata(LDData* log,
                            const char* event_session,
                            const char* short_comment) {
                             
-    if (driver) strncpy(log->head->driver, driver, sizeof(log->head->driver)-1);
-    if (vehicle_id) strncpy(log->head->vehicle_id, vehicle_id, sizeof(log->head->vehicle_id)-1);
-    if (venue_name) strncpy(log->head->venue, venue_name, sizeof(log->head->venue)-1);
-    if (event_name) strncpy(log->head->event, event_name, sizeof(log->head->event)-1);
-    if (event_session) strncpy(log->head->session, event_session, sizeof(log->head->session)-1);
-    if (short_comment) strncpy(log->head->short_comment, short_comment, sizeof(log->head->short_comment)-1);
+    if (driver) strncpy(log->head->driver, driver, 65);
+    if (vehicle_id) strncpy(log->head->vehicle_id, vehicle_id, 65);
+    if (venue_name) strncpy(log->head->venue, venue_name, 65);
+    if (event_name) strncpy(log->head->event, event_name, 65);
+    if (event_session) strncpy(log->head->session, event_session, 65);
+    if (short_comment) strncpy(log->head->short_comment, short_comment, 65);
     log->head->data_ptr = META_PTR + (log->channel_capacity * log->head->num_channels);
 }
 
@@ -183,7 +189,7 @@ void write_ld_header(LDHeader* header, FILE* f, int channel_count){
     uint16_t constants3[3] = {0x01,0x4240,0x0F};
     fwrite(constants3,2,3,f);
     uint32_t constants4[6] = {0x1F44,0x4C4441,0x00,0xADB001A4,(uint32_t)channel_count,0x00};
-    fwrite(constants4,4,1,f);
+    fwrite(constants4,4,6,f);
 
     time_t curTime = time(NULL); //NEED TO DO MANUALLY
     struct tm *info = localtime(&curTime); //DATE FORMAT SHOULD BE M/D/Y and H/M/S
