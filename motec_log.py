@@ -1,7 +1,7 @@
 import datetime
 import numpy as np
 import struct
-from data_log import DataLog, Message, Channel
+from data_log_wrapper import DataLogWrapper, Message, Channel
 from ldparser.ldparser import ldVehicle, ldVenue, ldEvent, ldHead, ldChan, ldData
 
 class MotecLog(object):
@@ -38,6 +38,7 @@ class MotecLog(object):
         # File components from ldparser
         self.ld_header = None
         self.ld_channels = []
+        # pass
 
     def initialize(self):
         """ Initializes all the meta data for the motec log.
@@ -105,13 +106,33 @@ class MotecLog(object):
         # Add the ld channel and advance the file pointers
         self.ld_channels.append(ld_channel)
 
-    def add_all_channels(self, data_log):
-        """ Adds all channels from a DataLog to the motec log.
+    # old python implementation, not used
+    # def add_all_channels(self, data_log):
+    #     """ Adds all channels from a DataLog to the motec log.
 
-        data_log: data_log.DataLog
-        """
-        for channel_name, channel in data_log.channels.items():
-            self.add_channel(channel)
+    #     data_log: data_log.DataLog
+    #     """
+    #     for channel_name, channel in data_log.channels.items():
+    #         self.add_channel(channel)
+    def add_all_channels(self, data_log):
+        """Modified to work with C-based DataLog"""
+        for name, channel in data_log.channels.items():
+            messages = []
+            for i in range(channel.messages_count):
+                msg = channel.messages[i]
+                messages.append(Message(msg.timestamp, msg.value))
+                
+            from data_log import Channel as PyChannel  
+            
+            log_channel = PyChannel(
+                name=channel.name.decode('utf-8'),
+                units=channel.units.decode('utf-8'),
+                data_type=float,
+                decimals=channel.decimals,
+                messages=messages
+            )
+        
+            self.add_channel(log_channel)
 
     def write(self, filename):
         """ Writes the motec log data to disc. """

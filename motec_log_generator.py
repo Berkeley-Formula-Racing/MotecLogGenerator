@@ -4,7 +4,7 @@ import argparse
 import cantools
 import os
 
-from data_log import DataLog
+from data_log_wrapper import DataLogWrapper
 from motec_log import MotecLog
 from replace_nulls_modify import replace_nulls
 
@@ -73,7 +73,7 @@ if __name__ == '__main__':
         lines = file.readlines()
 
     # Create our data log from the input data
-    data_log = DataLog()
+    data_log = DataLogWrapper()
 
     if args.log_type == "CAN":
         if not os.path.isfile(args.dbc):
