@@ -1,6 +1,7 @@
 import ctypes
 from ctypes import Structure, c_double, c_char_p, c_int, c_size_t, POINTER
 import os
+import sys
 
 # Define the structures to match our C code
 class Message(Structure):
@@ -30,8 +31,20 @@ class DataLog(Structure):
     ]
 
 # Load the C library
-lib_path = os.path.join(os.path.dirname(__file__), "libdatalog.so")
+HERE = os.path.dirname(__file__)
+
+if os.name == "nt":            # Windows
+    libname = "libdatalog.dll"
+elif sys.platform == "darwin": # macOS
+    libname = "libdatalog.dylib"
+else:                          # Linux / other *nix
+    libname = "libdatalog.so"
+
+lib_path = os.path.join(HERE, libname)
+print(lib_path)
+
 _lib = ctypes.CDLL(lib_path)
+
 
 # Define function prototypes
 _lib.data_log_create.argtypes = [c_char_p]
