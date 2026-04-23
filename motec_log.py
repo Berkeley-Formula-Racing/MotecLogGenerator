@@ -79,7 +79,7 @@ class MotecLog(object):
         next_meta_ptr = meta_ptr + self.CHANNEL_HEADER_SIZE
 
         # Channel specs
-        data_len = len(log_channel.messages)
+        data_len = log_channel.sample_count()
         data_type = np.float32 if log_channel.data_type is float else np.int32
         freq = int(log_channel.avg_frequency())
         shift = 0
@@ -96,11 +96,11 @@ class MotecLog(object):
             log_channel.units)
 
         # Add in the channel data
-        ld_channel._data = np.zeros(data_len, data_type)
-        i = 0
-        for msg in log_channel.messages:
-            ld_channel._data[i] = data_type(msg.value)
-            i += 1
+        if isinstance(log_channel.values, np.ndarray):
+            ld_channel._data = log_channel.values.astype(data_type, copy=False)
+        else:
+            ld_channel._data = np.fromiter(log_channel.iter_values(), dtype=data_type, \
+                count=data_len)
 
         # Add the ld channel and advance the file pointers
         self.ld_channels.append(ld_channel)
