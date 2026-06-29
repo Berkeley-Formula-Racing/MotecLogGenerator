@@ -80,16 +80,13 @@ class MotecLog(object):
 
         # Channel specs
         data_len = log_channel.sample_count()
-        data_type = np.float32 if log_channel.data_type is float else np.int32
+        decimals = max(0, int(log_channel.decimals))
+        store_as_scaled_int = log_channel.data_type is float and decimals > 0
+        data_type = np.int32 if store_as_scaled_int or log_channel.data_type is not float else np.float32
         freq = int(log_channel.avg_frequency())
         shift = 0
         multiplier = 1
         scale = 1
-
-        # Decimal places must be hard coded to zero, the ldparser library doesn't properly
-        # handle non zero values, consequently all channels will have zero decimal places
-        # decimals = log_channel.decimals
-        decimals = 0
 
         ld_channel = ldChan(None, meta_ptr, prev_meta_ptr, next_meta_ptr, data_ptr, data_len, \
             data_type, freq, shift, multiplier, scale, decimals, log_channel.name, "", \
@@ -97,10 +94,17 @@ class MotecLog(object):
 
         # Add in the channel data
         if isinstance(log_channel.values, np.ndarray):
-            ld_channel._data = log_channel.values.astype(data_type, copy=False)
+            source_values = log_channel.values
         else:
-            ld_channel._data = np.fromiter(log_channel.iter_values(), dtype=data_type, \
-                count=data_len)
+            source_values = np.fromiter(log_channel.iter_values(), dtype=np.float32, count=data_len)
+
+        if store_as_scaled_int:
+            scale_factor = 10 ** decimals
+            ld_channel._data = np.rint(np.asarray(source_values, dtype=np.float64) * scale_factor) \
+                .astype(np.int32)
+            ld_channel._data_is_raw = True
+        else:
+            ld_channel._data = np.asarray(source_values).astype(data_type, copy=False)
 
         # Add the ld channel and advance the file pointers
         self.ld_channels.append(ld_channel)

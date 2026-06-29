@@ -152,7 +152,8 @@ class DataLog(object):
         for i, raw_name in enumerate(header[1:]):
             name = self.__unique_channel_name(raw_name, seen_names)
             units = channel_units[i].strip() if i < len(channel_units) else ""
-            self.add_channel(name, units, float, 0, None, 0)
+            units = self.__default_units_for_channel(name, units)
+            self.add_channel(name, units, float, 3, None, 0)
             channel = self.channels[name]
             channel.set_series(shared_timestamps, [])
             channel_entries.append((name, channel, i))
@@ -221,7 +222,8 @@ class DataLog(object):
         for i, raw_name in enumerate(header[1:]):
             name = self.__unique_channel_name(raw_name, seen_names)
             units = channel_units[i].strip() if i < len(channel_units) else ""
-            self.add_channel(name, units, float, 0, None, 0)
+            units = self.__default_units_for_channel(name, units)
+            self.add_channel(name, units, float, 3, None, 0)
             channel = self.channels[name]
             channel.set_series(shared_timestamps, data[:, i + 1])
             channel_entries.append((name, channel, i))
@@ -277,6 +279,28 @@ class DataLog(object):
         if count == 1:
             return base_name
         return "%s_%d" % (base_name, count)
+
+    @staticmethod
+    def __default_units_for_channel(name, units):
+        normalized_units = str(units).strip()
+        if normalized_units:
+            try:
+                float(normalized_units)
+                normalized_units = ""
+            except ValueError:
+                return normalized_units
+
+        upper_name = name.strip().upper()
+        default_units = {
+            "ANGRATEX": "deg/s",
+            "ANGRATEY": "deg/s",
+            "ANGRATEZ": "deg/s",
+            "ACCELX": "g",
+            "ACCELY": "g",
+            "ACCELZ": "g",
+            "IMUTEMP": "C",
+        }
+        return default_units.get(upper_name, "")
 
     def from_accessport_log(self, log_source, show_progress=False):
         """ Creates channels populated with messages from a COBB Accessport CSV log file.
