@@ -115,7 +115,7 @@ class MotecLog(object):
         for channel_name, channel in data_log.channels.items():
             self.add_channel(channel)
 
-    def write(self, filename):
+    def write(self, filename, progress=None):
         """ Writes the motec log data to disc. """
         # Check for the presence of any channels, since the ldData write() method doesn't
         # gracefully handle zero channels
@@ -125,7 +125,7 @@ class MotecLog(object):
             # Need to zero out the final channel pointer
             ld_data.channs[-1].next_meta_ptr = 0
 
-            ld_data.write(filename)
+            ld_data.write(filename, progress=progress)
         else:
             with open(filename, "wb") as f:
                 self.ld_header.write(f, 0)

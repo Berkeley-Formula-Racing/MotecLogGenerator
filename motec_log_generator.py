@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import datetime
 import cantools
 import os
 
@@ -45,6 +46,8 @@ if __name__ == '__main__':
     parser.add_argument("--event_session", type=str, default="", help="Motec log metadata field")
     parser.add_argument("--long_comment", type=str, default="", help="Motec log metadata field")
     parser.add_argument("--short_comment", type=str, default="", help="Motec log metadata field")
+    parser.add_argument("--progress", action="store_true", help="Print writer progress")
+    parser.add_argument("--log_datetime", type=datetime.datetime.fromisoformat, help="Log date and time (ISO 8601)")
     args = parser.parse_args()
 
     if args.log:
@@ -119,6 +122,8 @@ if __name__ == '__main__':
     motec_log.long_comment = args.long_comment
     motec_log.short_comment = args.short_comment
 
+    if args.log_datetime is not None:
+        motec_log.datetime = args.log_datetime
     motec_log.initialize()
     motec_log.add_all_channels(data_log)
 
@@ -136,5 +141,6 @@ if __name__ == '__main__':
         print("Directory '%s' does not exist, will create it" % output_dir)
         os.makedirs(output_dir)
 
-    motec_log.write(ld_filename)
+    callback = (lambda done, total: print("CANARY_PROGRESS write %d %d" % (done, total), flush=True)) if args.progress else None
+    motec_log.write(ld_filename, progress=callback)
     print("Done!")
