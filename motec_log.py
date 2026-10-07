@@ -79,28 +79,30 @@ class MotecLog(object):
         next_meta_ptr = meta_ptr + self.CHANNEL_HEADER_SIZE
 
         # Channel specs
-        data_len = len(log_channel.messages)
-        data_type = np.float32 if log_channel.data_type is float else np.int32
+        data_len = log_channel.sample_count()
+        decimals = max(0, int(log_channel.decimals))
+        store_as_scaled_int = log_channel.data_type is float and decimals > 0
+        data_type = np.int32 if store_as_scaled_int or log_channel.data_type is not float else np.float32
         freq = int(log_channel.avg_frequency())
         shift = 0
         multiplier = 1
         scale = 1
-
-        # Decimal places must be hard coded to zero, the ldparser library doesn't properly
-        # handle non zero values, consequently all channels will have zero decimal places
-        # decimals = log_channel.decimals
-        decimals = 0
 
         ld_channel = ldChan(None, meta_ptr, prev_meta_ptr, next_meta_ptr, data_ptr, data_len, \
             data_type, freq, shift, multiplier, scale, decimals, log_channel.name, "", \
             log_channel.units)
 
         # Add in the channel data
-        ld_channel._data = np.zeros(data_len, data_type)
-        i = 0
-        for msg in log_channel.messages:
-            ld_channel._data[i] = data_type(msg.value)
-            i += 1
+        if isinstance(log_channel.values, np.ndarray):
+            source_values = log_channel.values
+        else:
+            source_values = np.fromiter(log_channel.iter_values(), dtype=np.float32, count=data_len)
+
+        # Keep the source view; scale bounded blocks while writing instead of allocating
+        # a second full log of int32 channel arrays.
+        ld_channel._data = np.asarray(source_values)
+        ld_channel._write_scaled_int = store_as_scaled_int
+        ld_channel._data_is_raw = not store_as_scaled_int
 
         # Add the ld channel and advance the file pointers
         self.ld_channels.append(ld_channel)
